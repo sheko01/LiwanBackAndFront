@@ -1,10 +1,9 @@
 "use client";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { AuroraBackground } from "@/app/components/ui/background";
 import { ThemeProvider, useTheme } from "next-themes";
-
 
 export function AuroraBackgroundDemo() {
   const { theme, setTheme } = useTheme();
@@ -52,7 +51,7 @@ export function AuroraBackgroundDemo() {
     )
   ) : null;
 
-   // Coded Added by Seif to Connect Backend with Frontend (DON'T MODIFY PLEASE.)
+  // Coded Added by Seif to Connect Backend with Frontend (DON'T MODIFY PLEASE.)
 
   function getCookie(name) {
     const value = `; ${document.cookie}`;
@@ -68,7 +67,6 @@ export function AuroraBackgroundDemo() {
     const accessToken = getCookie("accessToken");
     setIsSignedIn(!!accessToken); // Update state based on token presence
   }, []);
-
 
   return (
     <AuroraBackground>
@@ -94,8 +92,8 @@ export function AuroraBackgroundDemo() {
                   : "/liwan-logo-inverted.png"
               }
               alt="logo"
-              width={440}
-              height={440}
+              width={theme === "dark" ? 400 : 340} // Set specific width for each theme
+              height={theme === "dark" ? 400 : 340} // Set specific height for each theme
             />
           </div>
         </div>
@@ -143,7 +141,6 @@ export default function Home() {
     if (parts.length === 2) return parts.pop().split(";").shift();
     return null;
   }
-
   // Retrieve token from cookies
   const accessToken = getCookie("accessToken");
 
@@ -154,12 +151,11 @@ export default function Home() {
     console.log("No access token found. User may need to log in.");
   }
 
-
   return (
+    <div className="bg-gray-50 dark:bg-gray-900">
       <ThemeProvider attribute="class">
-        <div className="bg-gray-50 dark:bg-gray-900">
-          <AuroraBackgroundDemo />
-        </div>
+        <AuroraBackgroundDemo />
       </ThemeProvider>
+    </div>
   );
 }

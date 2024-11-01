@@ -10,7 +10,6 @@ import {
 import {
   IconArrowLeft,
   IconBrandTabler,
-  IconSettings,
   IconUserBolt,
 } from "@tabler/icons-react";
 import Link from "next/link";
@@ -19,6 +18,7 @@ import Image from "next/image";
 import { ThemeProvider, useTheme } from "next-themes";
 import { cn } from "@/app/lib/utils";
 import { Carousel, Card } from "@/app/components/ui/card-carousel";
+import { LayoutDashboardIcon, LogOut } from "lucide-react";
 
 // Theme Toggle Component (using your provided code)
 const ThemeToggle = () => {
@@ -125,26 +125,26 @@ const DummyContent = () => {
 // Data for Carousel Cards
 const data = [
   {
-    category: "Artificial Intelligence",
-    title: "You can do more with AI.",
+    category: "",
+    title: "",
     src: "/card_one.jpg",
     content: <DummyContent />,
   },
   {
-    category: "Productivity",
-    title: "Enhance your productivity.",
+    category: "",
+    title: "",
     src: "/card_two.jpg",
     content: <DummyContent />,
   },
   {
-    category: "Product",
-    title: "Launching the new Apple Vision Pro.",
+    category: "",
+    title: "",
     src: "/card_three.jpg",
     content: <DummyContent />,
   },
   {
-    category: "Product",
-    title: "Maps for your iPhone 15 Pro Max.",
+    category: "",
+    title: "",
     src: "/card_four.jpg",
     content: <DummyContent />,
   },
@@ -157,21 +157,22 @@ export function SidebarDemo() {
       label: "My Tickets",
       href: "/user-main/ticket",
       icon: (
-        <IconBrandTabler className="text-neutral-700 dark:text-neutral-200 h-6 w-6 flex-shrink-0 mx-2" />
+        <IconBrandTabler className="text-neutral-200 h-6 w-6 flex-shrink-0 mx-2" />
       ),
     },
     {
-      label: "Profile",
-      href: "/Profile",
+      label: "Admin Dashboard",
+      href: "/admin-dashboard",
       icon: (
-        <IconUserBolt className="text-neutral-700 dark:text-neutral-200 h-6 w-6 flex-shrink-0 mx-2" />
+        <LayoutDashboardIcon className="text-neutral-200 h-6 w-6 flex-shrink-0 mx-2" />
       ),
     },
+    
     {
       label: "Logout",
-      href: "#",
+      href: "/",
       icon: (
-        <IconArrowLeft className="text-neutral-700 dark:text-neutral-200 h-6 w-6 flex-shrink-0 mx-2" />
+        <LogOut className="text-neutral-200 h-6 w-6 flex-shrink-0 mx-2" />
       ),
     },
   ];
@@ -215,8 +216,8 @@ export const Sidebar = ({
             <SidebarLink key={idx} link={link} />
           ))}
         </div>
-        <div className="mt-auto pb-4"> {/* Push to bottom */}
-          <ThemeToggle />
+        <div className="mt-auto pb-4 text-neutral-200 hover:text-Primary"> {/* Push to bottom */}
+          <ThemeToggle/>
         </div>
       </div>
     </motion.div>

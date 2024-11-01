@@ -1,6 +1,5 @@
 "use client";
-
-import { useState, useEffect } from "react";
+import { useState, useEffect, SetStateAction } from "react";
 import {
   Moon,
   Sun,
@@ -12,19 +11,22 @@ import {
   LogOut,
   ChevronUp,
   ChevronDown,
+  X,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { ThemeProvider, useTheme } from "next-themes";
+import { GrDashboard } from "react-icons/gr";
+import { IconDashboard, IconLayoutDashboard } from "@tabler/icons-react";
 
 export function TicketManagement() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const ticketsPerPage = 4;
+  const [showPending, setShowPending] = useState(true);
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-
-
+  const [selectedTicket, setSelectedTicket] = useState(null);
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -38,84 +40,132 @@ export function TicketManagement() {
 
   const themeIcon = mounted ? (
     theme === "dark" ? (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-        strokeWidth={1.5}
-        stroke="currentColor"
-        className="w-6 h-6 transition duration-300 ease-in-out transform hover:rotate-180"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M12 3v1.5M12 19.5V21M4.219 4.219l1.061 1.061M17.719 17.719l1.061 1.061M3 12h1.5M19.5 12H21M4.219 19.781l1.061-1.061M17.719 6.281l1.061-1.061M12 9a3 3 0 100 6 3 3 0 000-6z"
-        />
-      </svg>
+      <Sun className="w-6 h-6 transition duration-300 ease-in-out transform hover:rotate-180" />
     ) : (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-        strokeWidth={1.5}
-        stroke="currentColor"
-        className="w-6 h-6 transition duration-300 ease-in-out transform hover:rotate-180"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M21.752 15.002A9.718 9.718 0 0112.003 21c-5.385 0-9.75-4.365-9.75-9.75 0-4.207 2.663-7.793 6.423-9.126.45-.164.938.086 1.06.55a.749.749 0 01-.347.826 8.251 8.251 0 1010.965 10.965.75.75 0 01.826-.347c.464.122.714.61.55 1.06z"
-        />
-      </svg>
+      <Moon className="w-6 h-6 transition duration-300 ease-in-out transform hover:rotate-180" />
     )
   ) : null;
 
-  // Coded Added by Seif to Connect Backend with Frontend (DON'T MODIFY PLEASE.)
-  const [tickets, setTickets] = useState([]);
-  const [error, setError] = useState("");
+  const handleViewTicket = (ticket: SetStateAction<null>) => {
+    setSelectedTicket(ticket);
+    setIsPopupOpen(true);
+  };
 
-  function getCookie(name) {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop().split(";").shift();
-    return null;
-  }
+  const handleClosePopup = () => {
+    setIsPopupOpen(false);
+    setSelectedTicket(null);
+  };
+
+  // SEIF'S CODE TO CONNECT BACKEND WITH FRONTEND
+  const [role, setRole] = useState(null);
+  const [employeeData, setEmployeeData] = useState(null);
+  const [departmentData, setDepartmentData] = useState(null);
+  const [tickets, setTickets] = useState([]);
+
+  const decodeTokenPayload = (token) => {
+    try {
+      const base64Payload = token.split('.')[1];
+      const decodedPayload = atob(base64Payload);
+      return JSON.parse(decodedPayload);
+    } catch (error) {
+      console.error('Failed to decode token payload:', error);
+      return null;
+    }
+  };
 
   useEffect(() => {
-    const fetchTickets = async () => {
-      const accessToken = getCookie("accessToken");
-      if (!accessToken) {
-        setError("No access token found. Please log in.");
-        return;
-      }
+    const accessToken = document.cookie
+      .split('; ')
+      .find((row) => row.startsWith('accessToken'))
+      ?.split('=')[1];
 
-      try {
-        const response = await fetch("http://127.0.0.1:5000/api/v1/tickets", {
+    if (accessToken) {
+      const payload = decodeTokenPayload(accessToken);
+      console.log('Decoded Token Payload:', payload); // Log the decoded payload
+      const employeeId = payload?.id;
+
+      if (employeeId) {
+        // Fetch employee data
+        fetch('http://127.0.0.1:5000/api/v1/employees/', {
           headers: {
             Authorization: `Bearer ${accessToken}`,
           },
-        });
-        const data = await response.json();
-        if (data.status === "Success") {
-          setTickets(data.data.tickets);
-        } else {
-          setError("Failed to fetch tickets");
-        }
-      } catch (error) {
-        setError("An error occurred while fetching tickets.");
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error('Failed to fetch employee data');
+            }
+            return response.json();
+          })
+          .then((data) => {
+            console.log('Employee Data:', data); // Log employee data
+            const employees = data?.data?.employees || [];
+            const employee = employees.find((emp) => emp._id === employeeId);
+
+            if (employee) {
+              setEmployeeData(employee);
+              setRole(employee.role);
+
+              // If the user is a manager, fetch their managed departments
+              if (employee.role === 'manager') {
+                const managedDepartments = employee.managedDepartments || [];
+                if (managedDepartments.length > 0) {
+                  // Fetch department details for the first managed department
+                  const departmentId = managedDepartments[0]._id; // Get the ID of the first managed department
+                  fetch(`http://127.0.0.1:5000/api/v1/departments/${departmentId}`, {
+                    headers: {
+                      Authorization: `Bearer ${accessToken}`,
+                    },
+                  })
+                    .then((response) => {
+                      if (!response.ok) {
+                        throw new Error('Failed to fetch department data');
+                      }
+                      return response.json();
+                    })
+                    .then((departmentData) => {
+                      console.log('Department Data:', departmentData); // Log department data
+                      setDepartmentData(departmentData?.data || null);
+                    })
+                    .catch((error) => console.error('Error fetching department data:', error));
+                }
+              }
+
+              // Fetch tickets for the employee
+              fetch(`http://127.0.0.1:5000/api/v1/tickets?employeeId=${employeeId}`, {
+                headers: {
+                  Authorization: `Bearer ${accessToken}`,
+                },
+              })
+                .then((response) => {
+                  if (!response.ok) {
+                    throw new Error('Failed to fetch tickets');
+                  }
+                  return response.json();
+                })
+                .then((ticketData) => {
+                  console.log('Tickets Data:', ticketData); // Log ticket data
+                  setTickets(ticketData?.data?.tickets || []);
+                })
+                .catch((error) => console.error('Error fetching tickets:', error));
+            } else {
+              console.error('Employee not found. Employee ID:', employeeId, 'Available Employees:', employees);
+            }
+          })
+          .catch((error) => console.error('Error fetching employee data:', error));
+      } else {
+        console.error('Invalid token payload. No employee ID found.');
       }
-    };
-
-    fetchTickets();
+    } else {
+      console.log('No access token found.');
+    }
   }, []);
-
-  if (error) return <div className="error">{error}</div>;
 
   return (
     <div className="flex h-screen">
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 h-full bg-Primary dark:bg-Primary text-neutral-200 p-4 transition-all duration-300 ease-in-out z-10 flex flex-col ${
+        className={`fixed top-0 left-0 h-full dark:bg-neutral-950 bg-Primary text-neutral-200 p-4 transition-all duration-300 ease-in-out z-10 flex flex-col ${
           isExpanded ? "w-[300px]" : "w-[72px]"
         }`}
         onMouseEnter={() => setIsExpanded(true)}
@@ -135,7 +185,7 @@ export function TicketManagement() {
           <SidebarItem
             icon={<Home size={20} />}
             label="Home"
-            href="/"
+            href="/user-main"
             isExpanded={isExpanded}
           />
           <SidebarItem
@@ -145,40 +195,49 @@ export function TicketManagement() {
             isExpanded={isExpanded}
           />
           <SidebarItem
+            icon={<IconLayoutDashboard size={20} />}
+            label="Admin Dashboard"
+            href="/admin-dashboard"
+            isExpanded={isExpanded}
+          />
+          <SidebarItem
             icon={<LogOut size={20} />}
             label="Log out"
-            href="#"
+            href="/"
             isExpanded={isExpanded}
           />
         </nav>
-        <button
-          onClick={toggleTheme}
-          className={`mt-auto w-full py-2 flex items-center bg-Primary text-white hover:bg-opacity-80 transition-colors duration-300 rounded ${
-            isExpanded ? "text-left" : "text-center"
-          }`}
-        >
-          {themeIcon}
-          {isExpanded && (
-            <span className="ml-2">
-              {theme === "dark" ? "Light Mode" : "Dark Mode"}
-            </span>
-          )}
-        </button>
+        <div className="mt-auto">
+          <SidebarItem
+            icon={themeIcon}
+            label={theme === "dark" ? "Light Mode" : "Dark Mode"}
+            onClick={toggleTheme}
+            isExpanded={isExpanded}
+          />
+        </div>
       </aside>
 
       {/* Main content */}
       <main
-        className={`flex-1 p-8 bg-neutral-100 dark:bg-slate-950 overflow-auto transition-all duration-300 ease-in-out ${
+        className={`flex-1 p-8 bg-neutral-100 dark:bg-Primary overflow-auto transition-all duration-300 ease-in-out ${
           isExpanded ? "ml-[300px]" : "ml-[72px]"
         }`}
       >
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl font-bold mb-8 text-Primary dark:text-neutral-100">
-            My tickets :
-          </h1>
+          <div className="flex justify-between items-center mb-8">
+            <h1 className="text-3xl font-bold text-Primary dark:text-neutral-100">
+              My Tickets
+            </h1>
+            <button
+              onClick={() => setShowPending(!showPending)}
+              className="px-4 py-2 bg-Primary text-neutral-200 rounded hover:bg-opacity-80 transition-colors duration-300"
+            >
+              {showPending ? "Show Completed" : "Show Pending"}
+            </button>
+          </div>
           <AnimatePresence mode="wait">
             <motion.div
-              key={currentPage}
+              key={currentPage + (showPending ? "pending" : "completed")}
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
@@ -186,7 +245,11 @@ export function TicketManagement() {
             >
               <div className="space-y-4">
                 {tickets.map((ticket) => (
-                  <TicketItem key={ticket._id} ticket={ticket} />
+                  <TicketItem
+                    key={ticket._id}
+                    ticket={ticket}
+                    onView={handleViewTicket}
+                  />
                 ))}
               </div>
             </motion.div>
@@ -199,27 +262,15 @@ export function TicketManagement() {
         </div>
       </main>
 
-      {/* Navigation arrows */}
-      <div className="fixed bottom-4 right-4 flex flex-col items-center space-y-2">
-        <button
-          className="p-2 rounded-full bg-Primary text-neutral-200"
-          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-          disabled={currentPage === 1}
-        >
-          <ChevronUp size={24} />
-        </button>
-        <button
-          className="p-2 rounded-full bg-Primary text-neutral-200"
-          onClick={() =>
-            setCurrentPage((prev) =>
-              Math.min(prev + 1, Math.ceil(tickets.length / ticketsPerPage))
-            )
-          }
-          disabled={currentPage === Math.ceil(tickets.length / ticketsPerPage)}
-        >
-          <ChevronDown size={24} />
-        </button>
-      </div>
+      {/* Ticket Details Popup */}
+      <AnimatePresence>
+        {isPopupOpen && selectedTicket && (
+          <TicketDetailsPopup
+            ticket={selectedTicket}
+            onClose={handleClosePopup}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -229,17 +280,16 @@ function SidebarItem({
   label,
   href,
   isExpanded,
+  onClick,
 }: {
   icon: React.ReactNode;
   label: string;
-  href: string;
+  href?: string;
   isExpanded: boolean;
+  onClick?: () => void;
 }) {
-  return (
-    <a
-      href={href}
-      className="flex items-center mb-4 dark:text-neutral-200  hover:text-white cursor-pointer transition-colors duration-300"
-    >
+  const content = (
+    <div className="flex items-center mb-4 dark:text-neutral-200 hover:text-white cursor-pointer transition-colors duration-300">
       <div className="w-8">{icon}</div>
       <span
         className={`ml-2 ${
@@ -248,32 +298,45 @@ function SidebarItem({
       >
         {label}
       </span>
-    </a>
+    </div>
   );
+
+  if (href) {
+    return <Link href={href}>{content}</Link>;
+  }
+
+  return <div onClick={onClick}>{content}</div>;
 }
 
-function TicketItem({ ticket }) {
-  const createdDate = new Date(ticket.createdAt).toLocaleDateString();
+function TicketItem({
+  ticket,
+  onView,
+}: {
+  ticket: any; // Consider defining a specific type
+  onView: (ticket: any) => void;
+}) {
+  const statusClass = ticket.status === "Open" ? "bg-blue-500" : "bg-gray-500"; // Example status logic
 
   return (
-    <div className="p-4 rounded-lg bg-Primary">
+    <div className="p-4 rounded-lg shadow-lg hover:shadow-2xl shadow-black/50 hover:shadow-black duration-300 bg-Primary space-y-8 space-x-8">
       <div className="flex items-start space-x-4">
-        <img src="/Sidebar-icon.jpg" alt={ticket.createdBy.fullName} className="w-10 h-10 rounded-full" />
+        <img
+          src="/Sidebar-icon.jpg" // Consider making this dynamic
+          alt={ticket.createdBy.fullName}
+          className="w-10 h-10 rounded-full"
+        />
         <div className="flex-1">
           <div className="flex justify-between items-start">
             <div>
-              <h3 className="font-semibold text-neutral-200 dark:text-neutral-200">{ticket.title}</h3>
+              <h3 className="font-semibold text-neutral-200 dark:text-neutral-200">
+                {ticket.title}
+              </h3>
               <p className="text-sm text-neutral-200 opacity-80 dark:text-neutral-200 dark:opacity-80">
-                Created by: {ticket.createdBy.fullName}
+                {ticket.createdBy.fullName}
               </p>
-              {ticket.assignedTo && (
-                <p className="text-sm text-neutral-200 opacity-80 dark:text-neutral-200 dark:opacity-80">
-                  Assigned to: {ticket.assignedTo.name}
-                </p>
-              )}
             </div>
             <span className="text-sm text-neutral-200 opacity-80 dark:text-neutral-200 dark:opacity-80 font-semibold">
-              {createdDate}
+              {new Date(ticket.createdAt).toLocaleDateString()}
             </span>
           </div>
           <p className="mt-2 text-sm text-neutral-200 opacity-90 dark:text-neutral-200 dark:opacity-90">
@@ -281,8 +344,15 @@ function TicketItem({ ticket }) {
           </p>
         </div>
       </div>
-      <div className='flex justify-end'>
-        <button className="mt-4 px-3 py-1 dark:bg-Primary dark:text-neutral-200 text-Primary bg-neutral-100 hover:dark:bg-neutral-200 hover:dark:text-neutral-950 font-semibold rounded text-sm hover:bg-opacity-80 transition-colors duration-300">
+      <div className="flex justify-between items-center">
+        <span className={`px-2 py-1 rounded-full text-xs font-semibold text-neutral-200 ${statusClass}`}>
+          {ticket.status}
+        </span>
+        <button
+          aria-label={`View ticket: ${ticket.title}`}
+          className="mt-4 px-3 py-1 dark:bg-Primary dark:text-neutral-200 text-Primary bg-neutral-100 hover:dark:bg-neutral-200 hover:dark:text-neutral-950 font-semibold rounded text-sm hover:bg-opacity-80 transition-colors duration-300"
+          onClick={() => onView(ticket)}
+        >
           View
         </button>
       </div>
@@ -290,6 +360,89 @@ function TicketItem({ ticket }) {
   );
 }
 
+function TicketDetailsPopup({
+  ticket,
+  onClose,
+}: {
+  ticket: any;
+  onClose: () => void;
+}) {
+  const handleRespond = () => {
+    // Implement respond functionality
+    console.log("Responding to ticket:", ticket.id);
+    onClose();
+  };
+
+  const handleDelete = () => {
+    // Implement delete functionality
+    console.log("Deleting ticket:", ticket.id);
+    onClose();
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.9, opacity: 0 }}
+        className="bg-white dark:bg-neutral-800 p-6 rounded-lg shadow-xl max-w-md w-full m-4"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex justify-between items-start mb-4">
+          <h2 className="text-2xl font-bold text-Primary dark:text-neutral-200">
+            {ticket.title}
+          </h2>
+          <button
+            onClick={onClose}
+            className="text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200"
+          >
+            <X size={24} />
+          </button>
+        </div>
+        <div className="mb-4">
+          <p className="text-sm text-neutral-600 dark:text-neutral-400">
+            {ticket.user} - {ticket.date}
+          </p>
+          <p className="mt-2 text-neutral-800 dark:text-neutral-200">
+            {ticket.description}
+          </p>
+          <p className="mt-2 text-sm font-semibold">
+            Status:{" "}
+            <span
+              className={
+                ticket.status === "pending"
+                  ? "text-yellow-500"
+                  : "text-green-500"
+              }
+            >
+              {ticket.status}
+            </span>
+          </p>
+        </div>
+        <div className="flex justify-end space-x-4">
+          <Link
+            href="/admin-respond"
+            className="px-4 py-2 bg-Primary text-white rounded hover:bg-blue-800 transition-colors duration-300 inline-block"
+          >
+            Respond
+          </Link>
+          <button
+            onClick={handleDelete}
+            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors duration-300"
+          >
+            Delete Ticket
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
 
 export default function Page() {
   return (

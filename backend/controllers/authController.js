@@ -16,6 +16,7 @@ const transporter = nodemailer.createTransport(
     },
   })
 );
+
 const sendMails = async (options) => {
   try {
     const mailOptions = {
