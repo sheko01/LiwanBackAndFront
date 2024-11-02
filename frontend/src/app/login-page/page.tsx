@@ -19,8 +19,7 @@ export default function Login() {
   const mouseXPassword = useMotionValue(0);
   const mouseYPassword = useMotionValue(0);
 
-  // General mouse move handler for each input field
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
   function handleMouseMove(
     event: React.MouseEvent<HTMLDivElement>,
     mouseX: any,
@@ -174,5 +173,3 @@ export default function Login() {
     </div>
   );
 }
-
-

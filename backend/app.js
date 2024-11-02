@@ -48,10 +48,9 @@ app.use(express.json({ limit: "16mb" })); //limits the size of the body to 16mb
 app.use(compression());
 
 app.use(cors({
-  origin: "http://127.0.0.1:5500" ,
+  origin: "http://localhost:3000",
   credentials : true
 }));
-
 
 //test middleware
 app.use((req, res, next) => {

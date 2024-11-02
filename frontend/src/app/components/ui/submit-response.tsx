@@ -37,7 +37,7 @@ const TicketForm = () => {
     <div className="min-h-screen bg-white dark:bg-gray-900 px-4 py-8">
       <div className="max-w-2xl mx-auto">
         <div className="flex justify-between items-center mb-8">
-          <Link href="/user-main" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
+          <Link href="/user-main/ticket" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
             <IconChevronLeft className="h-6 w-6" />
           </Link>
           <button
@@ -49,7 +49,7 @@ const TicketForm = () => {
         </div>
         
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white">Submit a ticket</h1>
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white">Submit a Response</h1>
           { isClient && (
             <Image
             src={theme === "dark" ? "/liwan-dark-no-bg.png" : "/liwan-logo-inverted.png"}
@@ -62,31 +62,14 @@ const TicketForm = () => {
         
         <form onSubmit={handleSubmit} className="space-y-8">
           <div>
-            <label htmlFor="issue-type" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Issue Type
-            </label>
-            <select
-              id="issue-type"
-              value={issueType}
-              onChange={handleIssueTypeChange}
-              className="w-full px-3 py-2 text-gray-700 dark:text-gray-300 rounded-md bg-gray-100 dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Select an issue type</option>
-              <option value="bug">Bug</option>
-              <option value="feature">Feature Request</option>
-              <option value="support">Support</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
-          <div>
             <label htmlFor="issue-description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Issue description
+              Response
             </label>
             <textarea
               id="issue-description"
               rows={6}
               className="w-full px-3 py-2 text-gray-700 dark:text-gray-300 rounded-md bg-gray-100 dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Describe your issue here..."
+              placeholder="Enter your response here..."
             ></textarea>
             <p className="mt-2 text-xs text-gray-500 dark:text-gray-400 text-right">max 1000 words</p>
           </div>
@@ -126,11 +109,4 @@ const TicketForm = () => {
     </div>
   )
 }
-
-export default function Page() {
-  return (
-    <div className="relative">
-      <TicketForm />
-    </div>
-  )
-}
+export default TicketForm

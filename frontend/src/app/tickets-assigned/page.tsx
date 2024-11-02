@@ -45,6 +45,8 @@ export function TicketManagement() {
     )
   ) : null;
 
+
+
   const handleClosePopup = () => {
     setIsPopupOpen(false);
     setSelectedTicket(null);
@@ -71,10 +73,8 @@ export function TicketManagement() {
 
   // Function to filter tickets based on status
   const filterTickets = () => {
-    if (showPending)
-      return ticketsData.filter((ticket) => ticket.status === "pending");
-    if (showCompleted)
-      return ticketsData.filter((ticket) => ticket.status === "completed");
+    if (showPending) return ticketsData.filter(ticket => ticket.status === "pending");
+    if (showCompleted) return ticketsData.filter(ticket => ticket.status === "completed");
     return ticketsData; // Show all tickets by default
   };
 
@@ -105,19 +105,32 @@ export function TicketManagement() {
 
             if (employee) {
               setEmployeeData(employee);
+              const managedDepartments = employee.departmentsManaged; // Get the departments managed by the employee
 
-              fetch("http://127.0.0.1:5000/api/v1/tickets/getMyTickets", {
-                headers: {
-                  Authorization: `Bearer ${accessToken}`,
-                },
-              })
-                .then((response) => response.json())
-                .then((ticketData) => {
-                  setTicketsData(ticketData?.data?.tickets || []);
-                })
-                .catch((error) =>
-                  console.error("Error fetching tickets data:", error)
-                );
+              // Fetch tickets for each managed department concurrently
+              const fetchDepartmentTickets = async (deptId) => {
+                try {
+                  const response = await fetch(`http://127.0.0.1:5000/api/v1/departments/${deptId}`, {
+                    headers: {
+                      Authorization: `Bearer ${accessToken}`,
+                    },
+                  });
+                  const departmentData = await response.json();
+                  const departmentTickets = departmentData.data.department.tickets || [];
+                  setTicketsData((prevTickets) => [...prevTickets, ...departmentTickets]); // Add the department tickets to ticketsData
+                } catch (error) {
+                  console.error("Error fetching department data:", error);
+                }
+              };
+
+              // Check if the employee is a manager or admin
+              if (employee.role === "manager" || employee.role === "admin") {
+                managedDepartments.forEach((deptId) => {
+                  fetchDepartmentTickets(deptId);
+                });
+              } else {
+                console.error("Employee is neither a manager nor an admin.");
+              }
             } else {
               console.error("Employee not found.");
             }
@@ -161,12 +174,6 @@ export function TicketManagement() {
             isExpanded={isExpanded}
           />
           <SidebarItem
-            icon={<Home size={20} />}
-            label="Assigned To"
-            href="/tickets-assigned"
-            isExpanded={isExpanded}
-          />
-          <SidebarItem
             icon={<History size={20} />}
             label="History"
             href="/ticket-history"
@@ -202,68 +209,59 @@ export function TicketManagement() {
         }`}
       >
         <div className="max-w-4xl mx-auto">
-          <div className="flex justify-between items-center mb-8">
-            <h1 className="text-3xl font-bold text-Primary dark:text-neutral-100">
-              My Tickets
-            </h1>
-            <div className="flex space-x-4">
-              <button
-                onClick={() => {
-                  setShowPending(true);
-                  setShowCompleted(false);
-                }}
-                className={`px-4 py-2 ${
-                  showPending ? "bg-blue-500" : "bg-Primary"
-                } text-neutral-200 rounded hover:bg-opacity-80 transition-colors duration-300`}
-              >
-                Show Pending
-              </button>
-              <button
-                onClick={() => {
-                  setShowCompleted(true);
-                  setShowPending(false);
-                }}
-                className={`px-4 py-2 ${
-                  showCompleted ? "bg-green-500" : "bg-Primary"
-                } text-neutral-200 rounded hover:bg-opacity-80 transition-colors duration-300`}
-              >
-                Show Completed
-              </button>
-              <button
-                onClick={() => {
-                  setShowPending(false);
-                  setShowCompleted(false);
-                }}
-                className={`px-4 py-2 ${
-                  !showPending && !showCompleted ? "bg-gray-500" : "bg-Primary"
-                } text-neutral-200 rounded hover:bg-opacity-80 transition-colors duration-300`}
-              >
-                Show All
-              </button>
-            </div>
-          </div>
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={
-                currentPage +
-                (showPending ? "pending" : showCompleted ? "completed" : "all")
-              }
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3 }}
-            >
-              <div className="space-y-4">
-                {filterTickets().map((ticket) => (
-                  <TicketItem
-                    key={ticket._id}
-                    ticket={ticket}
-                    onView={handleViewTicket}
-                  />
-                ))}
-              </div>
-            </motion.div>
-          </AnimatePresence>
+        <div className="flex justify-between items-center mb-8">
+      <h1 className="text-3xl font-bold text-Primary dark:text-neutral-100">
+       Tickets Assigned to you
+      </h1>
+      <div className="flex space-x-4">
+        <button
+          onClick={() => {
+            setShowPending(true);
+            setShowCompleted(false);
+          }}
+          className={`px-4 py-2 ${showPending ? "bg-blue-500" : "bg-Primary"} text-neutral-200 rounded hover:bg-opacity-80 transition-colors duration-300`}
+        >
+          Show Pending
+        </button>
+        <button
+          onClick={() => {
+            setShowCompleted(true);
+            setShowPending(false);
+          }}
+          className={`px-4 py-2 ${showCompleted ? "bg-green-500" : "bg-Primary"} text-neutral-200 rounded hover:bg-opacity-80 transition-colors duration-300`}
+        >
+          Show Completed
+        </button>
+        <button
+          onClick={() => {
+            setShowPending(false);
+            setShowCompleted(false);
+          }}
+          className={`px-4 py-2 ${!showPending && !showCompleted ? "bg-gray-500" : "bg-Primary"} text-neutral-200 rounded hover:bg-opacity-80 transition-colors duration-300`}
+        >
+          Show All
+        </button>
+      </div>
+    </div>
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={currentPage + (showPending ? "pending" : showCompleted ? "completed" : "all")}
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: -20 }}
+        transition={{ duration: 0.3 }}
+      >
+        <div className="space-y-4">
+          {filterTickets().map((ticket) => (
+            <TicketItem
+              key={ticket._id}
+              ticket={ticket}
+              onView={handleViewTicket}
+            />
+          ))}
+        </div>
+      </motion.div>
+    </AnimatePresence>
           <Link href="/user-ticket">
             <button className="mt-6 px-4 py-2 dark:bg-Primary bg-neutral-100 dark:text-neutral-200 text-Primary hover:bg-Primary hover:text-white rounded transition-colors dark:hover:bg-neutral-200 dark:hover:text-[#1A1C23] duration-300">
               Submit another ticket
@@ -364,9 +362,7 @@ function TicketItem({
         </div>
       </div>
       <div className="flex justify-between items-center">
-        <span
-          className={`px-2 py-1 rounded-full text-xs font-semibold text-neutral-200 ${statusClass}`}
-        >
+        <span className={`px-2 py-1 rounded-full text-xs font-semibold text-neutral-200 ${statusClass}`}>
           {ticket.status}
         </span>
         <button
@@ -380,6 +376,7 @@ function TicketItem({
     </div>
   );
 }
+
 
 function TicketDetailsPopup({
   ticket,

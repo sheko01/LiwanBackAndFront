@@ -210,7 +210,7 @@ export const Card = ({
               exit={{ opacity: 0 }}
               ref={containerRef}
               layoutId={layout ? `card-${card.title}` : undefined}
-              className="max-w-5xl mx-auto bg-white dark:bg-neutral-900 h-[80vh] max-h-[80vh]  z-[60] my-10 p-4 md:p-10 rounded-3xl font-sans relative"
+              className="max-w-md overflow-y-auto max-h-[80vh] mx-auto bg-white dark:bg-neutral-900 h-[80vh] z-[60] my-10 p-4 md:p-10 rounded-3xl font-sans relative"
             >
               <button
                 className="sticky top-4 h-8 w-8 right-0 ml-auto bg-black dark:bg-white rounded-full flex items-center justify-center"
@@ -230,10 +230,12 @@ export const Card = ({
               >
                 {card.title}
               </motion.p>
-              <Link href="/user-ticket"> 
-                <button className="dark:bg-neutral-200 dark:text-Primary bg-Primary text-white font-bold py-2 px-4 rounded mt-4">
+              <Link href="/user-ticket">
+              <div className="flex justify-center items-center py-36">
+              <button className="dark:bg-neutral-200 dark:text-Primary bg-Primary text-white font-bold py-2 px-4 rounded">
                   Submit a Ticket
                 </button>
+              </div> 
               </Link>
             </motion.div>
           </div>
