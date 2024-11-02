@@ -16,6 +16,7 @@ const transporter = nodemailer.createTransport(
     },
   })
 );
+
 const sendMails = async (options) => {
   try {
     const mailOptions = {
@@ -387,5 +388,18 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: "success",
     message: "Password updated successfully, and you have been logged out.",
+  });
+});
+exports.logout = catchAsync((req, res, next) => {
+  res.cookie("refreshToken", "", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "Strict",
+    expires: new Date(Date.now() + 5 * 1000), // Expires in 10 seconds
+  });
+
+  res.status(200).json({
+    status: "success",
+    message: "You have been logged out successfully.",
   });
 });

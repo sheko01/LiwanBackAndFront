@@ -3,19 +3,25 @@ const departmentController = require("../controllers/departmentController");
 const authController = require("../controllers/authController");
 const router = express.Router();
 
-router.use(authController.protect, authController.restrictTo("admin"));
-
-
+router.use(authController.protect);
+router
+  .route("/:id")
+  .get(
+    authController.restrictTo("admin", "manager"),
+    departmentController.getDepartment
+  )
+  .patch(
+    authController.restrictTo("admin"),
+    departmentController.updateDepartment
+  )
+  .delete(
+    authController.restrictTo("admin"),
+    departmentController.deleteDepartment
+  );
+router.use(authController.restrictTo("admin"));
 router
   .route("/")
   .get(departmentController.getAllDepartments)
   .post(departmentController.createDepartment);
 
-
-
-router
-  .route("/:id")
-  .get(departmentController.getDepartment)
-  .patch(departmentController.updateDepartment)
-  .delete(departmentController.deleteDepartment);
 module.exports = router;

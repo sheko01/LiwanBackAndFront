@@ -9,7 +9,8 @@ const xss = require("xss-clean");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const compression = require("compression");
-
+const sseRouter = require("./routes/sseRoute");
+const AppError = require('./utils/AppError')
 const ticketRouter = require("./routes/ticketRoute");
 const employeeRouter = require("./routes/employeeRoute");
 const departmentRouter = require("./routes/departmentRoute");
@@ -29,17 +30,28 @@ app.use(cookieParser());
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
 }
+
 // Limit requests from same API
 const limiter = rateLimit({
   max: 100,
   windowMs: 60 * 60 * 1000,
   message: "Too many requests from this IP, please try again in an hour!",
 });
-app.use("/api", limiter);
 
-app.use(express.json({ limit: "10kb" })); //limits the size of the body to 10kb
+
+app.use("/api/v1/employees/login", limiter);
+
+app.use("/api/v1/employees/signUp", limiter);
+
+app.use(express.json({ limit: "16mb" })); //limits the size of the body to 16mb
 
 app.use(compression());
+
+app.use(cors({
+  origin: "http://127.0.0.1:5500" ,
+  credentials : true
+}));
+
 
 //test middleware
 app.use((req, res, next) => {
@@ -50,5 +62,16 @@ app.use((req, res, next) => {
 app.use("/api/v1/tickets", ticketRouter);
 app.use("/api/v1/employees", employeeRouter);
 app.use("/api/v1/departments", departmentRouter);
+
+app.use("/api/v1/sse", sseRouter);
+
+
+app.all('*' , (req , res ,next)=>{
+  next(new AppError( `Can't find ${req.originalUrl} on this server!`, 404))
+})
+
+
+
+
 app.use(globalErrorHandler);
 module.exports = app;

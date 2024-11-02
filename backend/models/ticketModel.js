@@ -44,8 +44,7 @@ const ticketSchema = new mongoose.Schema(
       fileUploaded: String,
     },
     fileUploaded: {
-      type: String,
-      required: [true, "Ticket must has File Uploaded !"],
+      type: String
     },
     hidden: { type: Boolean, default: false },
   },
