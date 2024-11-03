@@ -288,6 +288,7 @@ exports.deleteEmployee = catchAsync(async (req, res, next) => {
 
 exports.updateEmployeeDeps = catchAsync(async (req, res, next) => {
   const { departmentsManaged, emailOrExtension } = req.body;
+  
   // Check if emailOrExtension exists
   if (!emailOrExtension) {
     return next(new Error("Email or extension number is required."));
@@ -302,32 +303,39 @@ exports.updateEmployeeDeps = catchAsync(async (req, res, next) => {
   if (!isEmail && !isFourDigitNumber) {
     return next(new Error("Invalid email or extension number format."));
   }
-  if (departmentsManaged && departmentsManaged.length > 0) {
-    // Ensure each department ID in departmentsManaged exists in the Department model
-    const validDepartments = await Department.find({
-      _id: {
-        $in: departmentsManaged.map((id) => new mongoose.Types.ObjectId(id)),
-      },
-    });
 
-    if (validDepartments.length !== departmentsManaged.length) {
-      return next(new Error("One or more departments not found"));
+  // Fetch the employee
+  const employee = await Employee.findOne(
+    isEmail
+      ? { email: emailOrExtension }
+      : { extensionsnumber: emailOrExtension }
+  );
+
+  if (!employee) {
+    return next(new Error("No employee found with that ID"));
+  }
+
+  // Get the current departments managed by the employee
+  const oldDepartments = employee.departmentsManaged || [];
+  
+  // If departmentsManaged is provided (including empty array)
+  if (departmentsManaged !== undefined) {
+    if (departmentsManaged.length > 0) {
+      // Validate that all provided department IDs exist
+      const validDepartments = await Department.find({
+        _id: {
+          $in: departmentsManaged.map((id) => new mongoose.Types.ObjectId(id)),
+        },
+      });
+
+      if (validDepartments.length !== departmentsManaged.length) {
+        return next(new Error("One or more departments not found"));
+      }
     }
 
-    // Fetch the employee's current departmentsManaged for comparison
-    const employee = await Employee.findOne(
-      isEmail
-        ? { email: emailOrExtension }
-        : { extensionsnumber: emailOrExtension }
-    );
-    if (!employee) {
-      return next(new Error("No employee found with that ID"));
-    }
-
-    const oldDepartments = employee.departmentsManaged || [];
     const newDepartments = departmentsManaged.map((id) => id.toString());
 
-    // Remove the employee's ID as a manager from departments they are no longer managing
+    // Remove employee as manager from all old departments that aren't in new departments
     const departmentsToRemoveManager = oldDepartments.filter(
       (deptId) => !newDepartments.includes(deptId.toString())
     );
@@ -337,15 +345,20 @@ exports.updateEmployeeDeps = catchAsync(async (req, res, next) => {
       { $pull: { managers: employee._id } }
     );
 
-    // Add the employee's ID as a manager to the new departments
-    await Department.updateMany(
-      { _id: { $in: newDepartments } },
-      { $addToSet: { managers: employee._id } }
-    );
+    if (departmentsManaged.length > 0) {
+      // Add employee as manager to new departments
+      await Department.updateMany(
+        { _id: { $in: newDepartments } },
+        { $addToSet: { managers: employee._id } }
+      );
+    }
 
-    // Update the employee's departmentsManaged field
+    // Update employee document
     employee.departmentsManaged = newDepartments;
     employee.departments = newDepartments;
+    // Update role based on whether they manage any departments
+    employee.role = departmentsManaged.length > 0 ? "manager" : "employee";
+    
     const updatedEmployee = await employee.save();
 
     res.status(200).json({
@@ -354,6 +367,8 @@ exports.updateEmployeeDeps = catchAsync(async (req, res, next) => {
         employee: updatedEmployee,
       },
     });
+  } else {
+    return next(new Error("departmentsManaged field is required"));
   }
 });
 
@@ -364,6 +379,43 @@ exports.updateEmployee = catchAsync(async (req, res, next) => {
   const updatedEmployee = await Employee.findOneAndUpdate(
     { _id: req.params.id },
     { fname, lname, extensionsnumber, email },
+    {
+      new: true,
+      runValidators: true,
+    }
+  );
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      employee: updatedEmployee,
+    },
+  });
+});
+
+exports.updateEmployeeByExtension = catchAsync(async (req, res, next) => {
+  const { fname, lname, role, emailOrExtension } = req.body;
+  // Check if emailOrExtension exists
+  if (!emailOrExtension) {
+    return next(new Error("Email or extension number is required."));
+  }
+
+  const isEmail = validator.isEmail(emailOrExtension);
+  const isFourDigitNumber =
+    /^\d{4}$/.test(emailOrExtension) &&
+    validator.isInt(emailOrExtension, { min: 0, max: 9999 });
+
+  // Ensure that emailOrExtension is valid
+  if (!isEmail && !isFourDigitNumber) {
+    return next(new Error("Invalid email or extension number format."));
+  }
+
+  // Proceed with any other employee updates
+  const updatedEmployee = await Employee.findOneAndUpdate(
+    isEmail
+      ? { email: emailOrExtension }
+      : { extensionsnumber: emailOrExtension },
+    { fname, lname, role },
     {
       new: true,
       runValidators: true,

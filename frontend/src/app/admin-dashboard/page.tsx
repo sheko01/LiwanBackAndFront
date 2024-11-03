@@ -80,12 +80,18 @@ export function AdminDashboard() {
 
   // SEIF'S CODE TO LINK BACKEND WITH FRONTEND
 
+  // SEIF'S CODE TO LINK BACKEND WITH FRONTEND
+
   const [isAdmin, setIsAdmin] = useState(false);
   const [employeeData, setEmployeeData] = useState(null);
   const [departments, setDepartments] = useState([]);
   const [newDepartment, setNewDepartment] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState(""); // Track which type of modal to show
+  const [managerData, setManagerData] = useState({
+    emailOrExtension: '',
+    departmentsManaged: '' // This will hold the selected department ID
+  });
 
   // Function to open modal
   const openModal = (type) => {
@@ -98,12 +104,8 @@ export function AdminDashboard() {
     setIsModalOpen(false);
     setNewDepartment(""); // Clear the department input when closing
     setManagerData({
-      name: "",
-      email: "",
-      password: "",
-      phone: "",
-      ext: "",
-      department: "",
+      emailOrExtension: "",
+      departmentsManaged: ""
     }); // Clear manager form on close
   };
 
@@ -217,6 +219,37 @@ export function AdminDashboard() {
 
   // Delete existing departments
 
+  const handleDeleteManager = async (extensionsnumber) => {
+    const test = JSON.stringify({emailOrExtension: `${extensionsnumber}`,departmentsManaged: []});
+    console.log(test);
+    try {
+      const accessToken = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("accessToken"))
+      ?.split("=")[1];
+      const response = await fetch('http://127.0.0.1:5000/api/v1/employees/UpdateManagerDep', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({emailOrExtension: `${extensionsnumber}`,departmentsManaged: []}),
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to create manager');
+      }
+  
+      const data = await response.json();
+      console.log('Manager created successfully:', data);
+    
+    } catch (error) {
+      console.error('Error:', error);
+      // Handle error (e.g., show a notification to the user)
+    }
+  };
+
+
   const handleDeleteDepartment = async (departmentId) => {
     const confirmDelete = window.confirm(
       "Are you sure you want to delete this department?"
@@ -279,7 +312,6 @@ export function AdminDashboard() {
       return []; // Return an empty array on error
     }
   };
-
   // Fetch existing managers
 
   const [managers, setManagers] = useState([]);
@@ -308,99 +340,61 @@ export function AdminDashboard() {
     }
   }, []);
 
-  // Create new managers
+console.log(managers);
 
-  const [managerData, setManagerData] = useState({
-    departmentId: "614c1b8e8b9f6b4d5b528f70",
-    fname: "",
-    lname: "",
-    email: "",
-    password: "",
-    extensionsnumber: "",
-  });
+  // Add Managers
 
-  const handleManagerInputChange = (e) => {
-    const { name, value } = e.target;
-    setManagerData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
+
+  const handleManagerInputChange = (event) => {
+    const { name, value } = event.target;
+  
+    setManagerData((prevData) => {
+      const newData = {
+        ...prevData,
+        [name]: value,
+      };
+      return newData;
+    });
   };
-
-  // Handle adding a manager
-  const handleAddManager = async (e) => {
-    e.preventDefault();
+  
+  // Function to handle adding a manager
+  const handleAddManager = async (event) => {
+    event.preventDefault();
+  
+    const managerDataToSend = {
+      emailOrExtension: managerData.emailOrExtension,
+      departmentsManaged: [managerData.departmentsManaged], // Send the department ID as an array
+    };
     try {
-      const response = await fetch("http://127.0.0.1:5000/api/v1/employees/", {
-        method: "POST",
+      const accessToken = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("accessToken"))
+      ?.split("=")[1];
+      const response = await fetch('http://127.0.0.1:5000/api/v1/employees/UpdateManagerDep', {
+        method: 'PATCH',
         headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${
-            document.cookie
-              .split("; ")
-              .find((row) => row.startsWith("accessToken"))
-              ?.split("=")[1]
-          }`,
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
         },
-        body: JSON.stringify({
-          ...managerData, // Ensure you're sending the correct data
-          role: "manager", // If needed, add the role directly
-        }),
+        body: JSON.stringify(managerDataToSend),
       });
+  
       if (!response.ok) {
-        throw new Error("Failed to add manager");
+        throw new Error('Failed to create manager');
       }
+  
       const data = await response.json();
-      console.log("Manager added:", data);
-      closeModal(); // Close the modal after successful addition
-      setManagers((prevManagers) => [...prevManagers, data]); // Optionally update the managers list
+      console.log('Manager created successfully:', data);
+  
+      // Reset form fields
+      setManagerData({ emailOrExtension: '', departmentsManaged: '' });
+      closeModal(); // Close the modal after successful creation
+  
     } catch (error) {
-      console.error("Error:", error.message);
+      console.error('Error:', error);
+      // Handle error (e.g., show a notification to the user)
     }
   };
-
-  console.log(managerData);
-  // Delete Managers
-
-  // const handleDeleteManager = async (managerId) => {
-  //   const confirmDelete = window.confirm(
-  //     "Are you sure you want to delete this manager?"
-  //   );
-  //   if (!confirmDelete) return;
-
-  //   console.log("Attempting to delete manager with ID:", managerId); // Log the ID
-
-  //   try {
-  //     const response = await fetch(
-  //       `http://127.0.0.1:5000/api/v1/employees/delete/${managerId}`,
-  //       {
-  //         method: "DELETE",
-  //         headers: {
-  //           "Content-Type": "application/json",
-  //           Authorization: `Bearer ${
-  //             document.cookie
-  //               .split("; ")
-  //               .find((row) => row.startsWith("accessToken"))
-  //               ?.split("=")[1]
-  //           }`,
-  //         },
-  //       }
-  //     );
-
-  //     if (response.ok) {
-  //       // Optionally log success message or perform UI updates
-  //       console.log("Manager deleted successfully");
-  //       setManagers((prevManagers) =>
-  //         prevManagers.filter((manager) => manager._id !== managerId)
-  //       );
-  //     } else {
-  //       const errorResponse = await response.json();
-  //       console.error("Failed to delete manager:", errorResponse);
-  //     }
-  //   } catch (error) {
-  //     console.error("Error deleting manager:", error);
-  //   }
-  // };
 
   // Render access denied message for non-admins
   if (!isAdmin) {
@@ -410,6 +404,7 @@ export function AdminDashboard() {
       </div>
     );
   }
+
 
   return (
     <div className="flex h-screen">
@@ -496,15 +491,12 @@ export function AdminDashboard() {
                   </h3>
                   <p className="text-sm break-words">Email: {manager.email}</p>
                   <p className="text-sm break-words">
-                    Phone number: {manager.phoneNumber}
-                  </p>
-                  <p className="text-sm break-words">
-                    Ext number: {manager.extensionNumber}
+                    Ext number: {manager.extensionsnumber}
                   </p>
                   <div className="flex justify-end">
                     <button
                       className="bg-red-700 p-2 rounded-lg text-white font-semibold"
-                      onClick={() => handleDeleteManager(manager._id)}
+                      onClick={() => handleDeleteManager(manager.extensionsnumber)}
                     >
                       Delete
                     </button>
@@ -521,7 +513,9 @@ export function AdminDashboard() {
                   onClick={() => openModal("manager")}
                 >
                   <IconPlus width={40} height={40} />
-                  <span className="font-semibold px-4">Add Manager</span>
+                  <span className="font-semibold px-4">
+                    Add Managerial Access
+                  </span>
                 </button>
               </div>
             </div>
@@ -577,84 +571,42 @@ export function AdminDashboard() {
           <form onSubmit={handleAddManager} className="space-y-4">
             <div>
               <label
-                htmlFor="fname"
+                htmlFor="emailOrExtension"
                 className="block text-sm font-semibold text-Primary dark:text-neutral-200"
               >
-                First Name
+                Email or Extension
               </label>
               <input
                 type="text"
-                id="fname"
-                name="fname"
-                value={managerData.fname}
-                onChange={handleManagerInputChange}
-                className="mt-1 dark:bg-neutral-200 bg-neutral-400 text-black dark:text-Primary block w-full rounded-md border-gray-300 shadow-sm p-1 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="lname"
-                className="block text-sm font-semibold text-Primary dark:text-neutral-200"
-              >
-                Last Name
-              </label>
-              <input
-                type="text"
-                id="lname"
-                name="lname"
-                value={managerData.lname}
-                onChange={handleManagerInputChange}
-                className="mt-1 dark:bg-neutral-200 bg-neutral-400 text-black dark:text-Primary block w-full rounded-md border-gray-300 shadow-sm p-1 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-semibold text-Primary dark:text-neutral-200"
-              >
-                Email
-              </label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={managerData.email}
+                id="emailOrExtension"
+                name="emailOrExtension"
+                value={managerData.emailOrExtension}
                 onChange={handleManagerInputChange}
                 className="mt-1 dark:bg-neutral-200 bg-neutral-400 text-black dark:text-Primary p-1 block w-full rounded-md shadow-sm"
               />
             </div>
             <div>
               <label
-                htmlFor="password"
+                htmlFor="departmentsManaged"
                 className="block text-sm font-semibold text-Primary dark:text-neutral-200"
               >
-                Password
+                Departments Managed
               </label>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                value={managerData.password}
+              <select
+                id="departmentsManaged"
+                name="departmentsManaged"
+                value={managerData.departmentsManaged}
                 onChange={handleManagerInputChange}
                 className="mt-1 dark:bg-neutral-200 bg-neutral-400 text-black dark:text-Primary p-1 block w-full rounded-md shadow-sm"
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="extensionsnumber"
-                className="block text-sm font-semibold text-Primary dark:text-neutral-200"
               >
-                Ext Number
-              </label>
-              <input
-                type="text"
-                id="extensionsnumber"
-                name="extensionsnumber"
-                value={managerData.extensionsnumber}
-                onChange={handleManagerInputChange}
-                className="mt-1 dark:bg-neutral-200 bg-neutral-400 text-black dark:text-Primary block w-full rounded-md border-gray-300 shadow-sm p-1 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-              />
+                {departments.map((department, id) => (
+                  <option key={id} value={department._id}>
+                    {department.name}
+                  </option>
+                ))}
+              </select>
             </div>
+
             <div className="flex justify-end">
               <button
                 type="submit"
