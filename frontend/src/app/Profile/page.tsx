@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import { ThemeProvider, useTheme } from 'next-themes'
 
+
 export function PersonalInformation() {
   const [isExpanded, setIsExpanded] = useState(false)
   const { theme, setTheme } = useTheme()

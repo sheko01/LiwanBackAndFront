@@ -4,11 +4,14 @@ import Link, { LinkProps } from "next/link";
 import React, { useState, createContext, useContext, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { IconMenu2, IconX } from "@tabler/icons-react";
+import { useRouter } from "next/navigation"; // Add this import
+
 
 interface Links {
   label: string;
   href: string;
   icon: React.JSX.Element | React.ReactNode;
+  onClick?: () => void; // Make onClick optional
 }
 
 interface SidebarContextProps {
@@ -211,11 +214,23 @@ export const SidebarLink = ({
   props?: LinkProps;
 }) => {
   const { open, animate } = useSidebar();
+  const router = useRouter();
+
+  const handleClick = (e: React.MouseEvent) => {
+    if (link.onClick) {
+      e.preventDefault(); // Prevent default link behavior
+      link.onClick(); // Call the custom onClick handler
+    } else {
+      router.push(link.href); // Use router for navigation if no onClick handler
+    }
+  };
+
   return (
-    <Link
+    <a
       href={link.href}
+      onClick={handleClick} // Set the click handler here
       className={cn(
-        "flex items-center justify-start gap-2  group/sidebar py-2 text-white dark:bg-neutral-950 bg-Primary rounded-md",
+        "flex items-center justify-start gap-2 group/sidebar py-2 text-white dark:bg-neutral-950 bg-Primary rounded-md",
         className
       )}
       {...props}
@@ -231,6 +246,6 @@ export const SidebarLink = ({
       >
         {link.label}
       </motion.span>
-    </Link>
+    </a>
   );
 };

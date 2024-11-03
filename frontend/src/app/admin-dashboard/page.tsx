@@ -13,6 +13,7 @@ import {
   IconDeviceLaptop,
   IconUsers,
 } from "@tabler/icons-react";
+import { useRouter } from "next/navigation"; // Add this import
 
 function Modal({
   isOpen,
@@ -59,6 +60,7 @@ export function AdminDashboard() {
   const [isExpanded, setIsExpanded] = useState(false);
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const router = useRouter(); // Initialize router here
 
   useEffect(() => {
     setMounted(true);
@@ -445,8 +447,13 @@ export function AdminDashboard() {
           <SidebarItem
             icon={<LogOut size={20} />}
             label="Log out"
-            href="#"
             isExpanded={isExpanded}
+            onClick={() => {
+              document.cookie =
+              "accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; secure; samesite=strict";
+              // Redirect to the login page
+              router.push("/");
+            }}
           />
         </nav>
         <button
@@ -695,20 +702,21 @@ function SidebarItem({
   label,
   href,
   isExpanded,
+  onClick
 }: {
   icon: React.ReactNode;
   label: string;
-  href: string;
+  href?: string;
   isExpanded: boolean;
+  onClick?: () => void;
 }) {
   return (
-    <Link
-      href={href}
-      className="flex items-center mb-4 text-gray-200 hover:bg-gray-600 rounded transition-colors duration-300 p-2"
+    <div
+      className="flex items-center mb-4 text-gray-200 hover:bg-gray-600 rounded transition-colors duration-300 p-2" onClick={onClick}
     >
       {icon}
       {isExpanded && <span className="ml-2">{label}</span>}
-    </Link>
+    </div>
   );
 }
 

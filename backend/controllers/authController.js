@@ -126,7 +126,8 @@ exports.login = catchAsync(async (req, res, next) => {
   const cookieOptions = {
     httpOnly: true, // Prevent access by JavaScript
     secure: process.env.NODE_ENV === "production", // Use secure cookie in production
-    sameSite: "Strict", // Prevent cross-site access,
+    // sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    // domain: 'http://localhost:3000',
     expires: new Date(
       Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
     ),
@@ -391,7 +392,7 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
   });
 });
 exports.logout = catchAsync((req, res, next) => {
-  res.cookie("refreshToken", "", {
+  res.cookie("accessToken", "", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "Strict",

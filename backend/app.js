@@ -19,8 +19,11 @@ const globalErrorHandler = require("./controllers/errorController");
 const app = express();
 
 app.enable("trust-proxy");
-app.use(cors());
-app.options("*", cors());
+const corsOptions = {
+  origin: 'http://localhost:3000',  // explicitly specify your frontend URL
+  credentials: true,                // allow credentials (cookies) in requests
+};
+app.use(cors(corsOptions));
 app.use(helmet());
 app.use(mongoSanitize());
 app.use(xss());
@@ -47,10 +50,8 @@ app.use(express.json({ limit: "16mb" })); //limits the size of the body to 16mb
 
 app.use(compression());
 
-app.use(cors({
-  origin: "http://localhost:3000",
-  credentials : true
-}));
+
+app.options('http://localhost:3000', cors(corsOptions));  // handle all OPTIONS requests
 
 //test middleware
 app.use((req, res, next) => {

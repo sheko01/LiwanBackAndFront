@@ -48,8 +48,11 @@ export default function Login() {
         "http://127.0.0.1:5000/api/v1/employees/login",
         {
           method: "POST",
+          credentials: 'include',
           headers: {
             "Content-Type": "application/json",
+            'Access-Control-Allow-Origin': 'http://localhost:3000',  // Frontend URL
+            'Access-Control-Allow-Credentials': 'true',              // Allow credentials
           },
           body: JSON.stringify({
             emailOrExtension,

@@ -18,6 +18,7 @@ import Link from "next/link";
 import { ThemeProvider, useTheme } from "next-themes";
 import { GrDashboard } from "react-icons/gr";
 import { IconDashboard, IconLayoutDashboard } from "@tabler/icons-react";
+import { useRouter } from "next/navigation"; // Add this import
 
 export function TicketManagement() {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -26,6 +27,7 @@ export function TicketManagement() {
   const [mounted, setMounted] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const router = useRouter(); // Initialize router here
 
   useEffect(() => {
     setMounted(true);
@@ -190,6 +192,12 @@ export function TicketManagement() {
             label="Log out"
             href="/"
             isExpanded={isExpanded}
+            onClick={() => {
+              document.cookie =
+              "accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; secure; samesite=strict";
+              // Redirect to the login page
+              router.push("/");
+            }}
           />
         </nav>
         <div className="mt-auto">
@@ -297,7 +305,7 @@ function SidebarItem({
   onClick?: () => void;
 }) {
   const content = (
-    <div className="flex items-center mb-4 dark:text-neutral-200 hover:text-white cursor-pointer transition-colors duration-300">
+    <div className="flex items-center mb-4 dark:text-neutral-200 hover:text-white cursor-pointer transition-colors duration-300" onClick={onClick}>
       <div className="w-8">{icon}</div>
       <span
         className={`ml-2 ${
@@ -313,7 +321,7 @@ function SidebarItem({
     return <Link href={href}>{content}</Link>;
   }
 
-  return <div onClick={onClick}>{content}</div>;
+  return <div>{content}</div>;
 }
 
 function TicketItem({

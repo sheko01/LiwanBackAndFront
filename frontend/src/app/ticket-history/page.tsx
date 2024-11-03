@@ -15,6 +15,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { ThemeProvider, useTheme } from "next-themes";
+import { useRouter } from "next/navigation"; // Add this import
 
 export function TicketManagement() {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -23,6 +24,7 @@ export function TicketManagement() {
   const ticketsPerPage = 4;
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const router = useRouter(); // Initialize router here
 
   useEffect(() => {
     setMounted(true);
@@ -220,6 +222,12 @@ export function TicketManagement() {
             label="Log Out"
             href="/"
             isExpanded={isExpanded}
+            onClick={() => {
+              document.cookie =
+              "accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; secure; samesite=strict";
+              // Redirect to the login page
+              router.push("/");
+            }}
           />
         </nav>
         <button
@@ -342,16 +350,18 @@ function SidebarItem({
   label,
   href,
   isExpanded,
+  onClick
 }: {
   icon: React.ReactNode;
   label: string;
   href: string;
   isExpanded: boolean;
+  onClick?: () => void;
 }) {
   return (
     <Link
       href={href}
-      className="flex items-center mb-1 hover:text-white cursor-pointer transition-colors duration-300 px-4 py-1"
+      className="flex items-center mb-1 hover:text-white cursor-pointer transition-colors duration-300 px-4 py-1" onClick={onClick}
     >
       <div className="w-8">{icon}</div>
       <span

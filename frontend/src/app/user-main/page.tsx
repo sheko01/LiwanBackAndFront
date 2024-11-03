@@ -19,6 +19,7 @@ import { ThemeProvider, useTheme } from "next-themes";
 import { cn } from "@/app/lib/utils";
 import { Carousel, Card } from "@/app/components/ui/card-carousel";
 import { LayoutDashboardIcon, LogOut } from "lucide-react";
+import { useRouter } from "next/navigation"; // Add this import
 
 // Theme Toggle Component (using your provided code)
 const ThemeToggle = () => {
@@ -152,6 +153,7 @@ const data = [
 
 // Sidebar Demo with Light/Dark Mode
 export function SidebarDemo() {
+  const router = useRouter(); // Initialize router here
   const links = [
     {
       label: "My Tickets",
@@ -170,13 +172,22 @@ export function SidebarDemo() {
     
     {
       label: "Logout",
-      href: "/",
+      href: "/", // This is optional since you'll be using onClick
       icon: (
         <LogOut className="text-neutral-200 h-6 w-6 flex-shrink-0 mx-2" />
       ),
-    },
+      onClick: () => {
+        // Clear the access token cookie
+        document.cookie =
+          "accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; secure; samesite=strict";
+        // Redirect to the login page
+        router.push("/");
+      }},
   ];
 
+
+
+  
   const [open, setOpen] = useState(false);
 
   return (
