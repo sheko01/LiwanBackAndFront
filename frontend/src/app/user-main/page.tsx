@@ -28,8 +28,8 @@ const ThemeToggle = () => {
 
   useEffect(() => setMounted(true), []);
 
-  if (!mounted) return   
- null;
+  if (!mounted) return;
+  null;
 
   return (
     <button
@@ -74,6 +74,8 @@ const ThemeToggle = () => {
   );
 };
 
+
+
 // Dummy dashboard component with light/dark mode
 const Dashboard = () => {
   const { open } = useSidebar();
@@ -93,6 +95,96 @@ const Dashboard = () => {
 
 // Carousel Demo Component with Light/Dark Mode
 export function AppleCardsCarouselDemo() {
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [data, setData] = useState([
+    {
+      category: "",
+      title: "",
+      src: "/card_one.jpg",
+      content: <DummyContent />,
+    },
+    {
+      category: "",
+      title: "",
+      src: "/card_two.jpg",
+      content: <DummyContent />,
+    },
+    {
+      category: "",
+      title: "",
+      src: "/card_three.jpg",
+      content: <DummyContent />,
+    },
+    {
+      category: "",
+      title: "",
+      src: "/card_four.jpg",
+      content: <DummyContent />,
+    },
+  ]);
+
+  const decodeTokenPayload = (token) => {
+    try {
+      const base64Payload = token.split(".")[1];
+      const decodedPayload = atob(base64Payload);
+      return JSON.parse(decodedPayload);
+    } catch (error) {
+      console.error("Failed to decode token payload:", error);
+      return null;
+    }
+  };
+
+  useEffect(() => {
+    // Retrieve the access token from cookies
+    const token = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("accessToken="))
+      ?.split("=")[1];
+
+    if (!token) {
+      setError("Access token not found");
+      setLoading(false);
+      return;
+    }
+
+    // Optionally, decode the token payload (if needed for other purposes)
+    const payload = decodeTokenPayload(token);
+    console.log("Decoded token payload:", payload);
+
+    // Fetch departments using the token in headers
+    fetch("http://127.0.0.1:5000/api/v1/departments/", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to fetch departments");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        // Extract department names and map them into the data array
+        const departmentNames = data.data.departments.map((dept) => dept.name);
+        setData((prevData) =>
+          prevData.map((card, index) => ({
+            ...card,
+            title: departmentNames[index] || "",
+          }))
+        );
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error fetching departments:", error);
+        setError("Failed to load departments.");
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>{error}</div>;
+
   const cards = data.map((card, index) => (
     <Card key={card.src} card={card} index={index} />
   ));
@@ -106,6 +198,7 @@ export function AppleCardsCarouselDemo() {
     </div>
   );
 }
+
 
 // Dummy Content with Light/Dark Mode
 const DummyContent = () => {
@@ -124,32 +217,7 @@ const DummyContent = () => {
 };
 
 // Data for Carousel Cards
-const data = [
-  {
-    category: "",
-    title: "",
-    src: "/card_one.jpg",
-    content: <DummyContent />,
-  },
-  {
-    category: "",
-    title: "",
-    src: "/card_two.jpg",
-    content: <DummyContent />,
-  },
-  {
-    category: "",
-    title: "",
-    src: "/card_three.jpg",
-    content: <DummyContent />,
-  },
-  {
-    category: "",
-    title: "",
-    src: "/card_four.jpg",
-    content: <DummyContent />,
-  },
-];
+
 
 // Sidebar Demo with Light/Dark Mode
 export function SidebarDemo() {
@@ -169,25 +237,21 @@ export function SidebarDemo() {
         <LayoutDashboardIcon className="text-neutral-200 h-6 w-6 flex-shrink-0 mx-2" />
       ),
     },
-    
+
     {
       label: "Logout",
       href: "/", // This is optional since you'll be using onClick
-      icon: (
-        <LogOut className="text-neutral-200 h-6 w-6 flex-shrink-0 mx-2" />
-      ),
+      icon: <LogOut className="text-neutral-200 h-6 w-6 flex-shrink-0 mx-2" />,
       onClick: () => {
         // Clear the access token cookie
         document.cookie =
           "accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; secure; samesite=strict";
         // Redirect to the login page
         router.push("/");
-      }},
+      },
+    },
   ];
 
-
-
-  
   const [open, setOpen] = useState(false);
 
   return (
@@ -227,8 +291,10 @@ export const Sidebar = ({
             <SidebarLink key={idx} link={link} />
           ))}
         </div>
-        <div className="mt-auto pb-4 text-neutral-200 hover:text-Primary"> {/* Push to bottom */}
-          <ThemeToggle/>
+        <div className="mt-auto pb-4 text-neutral-200 hover:text-Primary">
+          {" "}
+          {/* Push to bottom */}
+          <ThemeToggle />
         </div>
       </div>
     </motion.div>
@@ -279,7 +345,9 @@ export const LogoIcon = () => {
 };
 
 // Main Page Export
+
 export default function page() {
+
   return (
     <div className="flex flex-1">
       <ThemeProvider attribute="class">

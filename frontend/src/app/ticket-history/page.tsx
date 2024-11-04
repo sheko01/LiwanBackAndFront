@@ -305,33 +305,6 @@ export function TicketManagement() {
         </div>
       </main>
 
-      {/* Navigation arrows */}
-      <div className="fixed bottom-4 right-4 flex flex-col items-center space-y-2">
-        <button
-          className="p-2 rounded-full bg-primary text-Primary dark:text-neutral-200"
-          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-          disabled={currentPage === 1}
-        >
-          <ChevronUp size={24} />
-        </button>
-        {/* <button
-          className="p-2 rounded-full bg-primary text-Primary dark:text-neutral-200"
-          onClick={() =>
-            setCurrentPage((prev) =>
-              Math.min(
-                prev + 1,
-                Math.ceil(filteredTickets.length / ticketsPerPage)
-              )
-            )
-          }
-          disabled={
-            currentPage === Math.ceil(filteredTickets.length / ticketsPerPage)
-          }
-        >
-          <ChevronDown size={24} />
-        </button> */}
-      </div>
-
       {/* Ticket Details Popup */}
       <AnimatePresence>
         {isPopupOpen && selectedTicket && (
@@ -345,35 +318,7 @@ export function TicketManagement() {
   );
 }
 
-function SidebarItem({
-  icon,
-  label,
-  href,
-  isExpanded,
-  onClick
-}: {
-  icon: React.ReactNode;
-  label: string;
-  href: string;
-  isExpanded: boolean;
-  onClick?: () => void;
-}) {
-  return (
-    <Link
-      href={href}
-      className="flex items-center mb-1 hover:text-white cursor-pointer transition-colors duration-300 px-4 py-1" onClick={onClick}
-    >
-      <div className="w-8">{icon}</div>
-      <span
-        className={`ml-2 ${
-          isExpanded ? "opacity-100" : "opacity-0 w-0"
-        } transition-all duration-300`}
-      >
-        {label}
-      </span>
-    </Link>
-  );
-}
+
 
 function TicketItem({ ticket, onView }) {
   // Extract necessary information from the ticket object
@@ -429,22 +374,16 @@ function TicketItem({ ticket, onView }) {
   );
 }
 
-function TicketDetailsPopup({
-  ticket,
-  onClose,
-}: {
-  ticket: any;
-  onClose: () => void;
-}) {
+function TicketDetailsPopup({ ticket, onClose, onNavigateToRespond }) {
+  const { title, description, createdBy, createdAt, assignedTo, status, response } = ticket;
+  const createdDate = new Date(createdAt).toLocaleDateString();
+  const router = useRouter();
   const handleRespond = () => {
-    // Implement respond functionality
-    console.log("Responding to ticket:", ticket.id);
-    onClose();
-  };
-
-  const handleDelete = () => {
-    // Implement delete functionality
-    console.log("Deleting ticket:", ticket.id);
+    if (onNavigateToRespond) {
+      onNavigateToRespond(ticket._id);
+    } else {
+      router.push(`/admin-respond/`);
+    }
     onClose();
   };
 
@@ -460,61 +399,109 @@ function TicketDetailsPopup({
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
-        className="bg-white dark:bg-neutral-800 p-6 rounded-lg shadow-xl max-w-md w-full m-4"
+        className="bg-Primary p-6 rounded-lg shadow-xl max-w-md w-full m-4 text-neutral-200"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-start mb-4">
-          <h2 className="text-2xl font-bold text-Primary dark:text-neutral-200">
-            {ticket.title}
-          </h2>
+          <div className="flex items-start space-x-4">
+            <img
+              src="/Sidebar-icon.jpg"
+              alt={createdBy?.fullName || 'User'}
+              className="w-10 h-10 rounded-full"
+            />
+            <div>
+              <h2 className="font-semibold text-xl">{title}</h2>
+              <p className="text-sm opacity-80">{createdBy?.fullName || 'Unknown User'}</p>
+            </div>
+          </div>
           <button
             onClick={onClose}
-            className="text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200"
+            className="text-neutral-400 hover:text-neutral-200 transition-colors"
           >
             <X size={24} />
           </button>
         </div>
-        <div className="mb-4">
-          <p className="text-sm text-neutral-600 dark:text-neutral-400">
-            {ticket.user} - {ticket.date}
-          </p>
-          <p className="mt-2 text-neutral-800 dark:text-neutral-200">
-            {ticket.description}
-          </p>
-          <p className="mt-2 text-neutral-800 dark:text-neutral-200">
-            Department: {ticket.department}
-          </p>
-          <p className="mt-2 text-neutral-800 dark:text-neutral-200">
-            Status:{" "}
+
+        <div className="mb-6 space-y-4">
+          <div>
+            <p className="text-sm opacity-80 font-semibold">{createdDate}</p>
+            <p className="mt-2 text-sm">{description}</p>
+          </div>
+
+          <div>
+            <p className="text-sm">Assigned to: {assignedTo?.name}</p>
             <span
-              className={
-                ticket.status === "pending"
-                  ? "text-yellow-500"
-                  : "text-green-500"
-              }
+              className={`mt-2 inline-block px-2 py-1 rounded-full text-xs font-semibold ${
+                status === "pending"
+                  ? "bg-yellow-200 text-yellow-800"
+                  : "bg-green-200 text-green-800"
+              }`}
             >
-              {ticket.status}
+              {status}
             </span>
-          </p>
+          </div>
+
+          <div className="mt-4 p-4 rounded-lg">
+            <h3 className="font-semibold mb-2">Response</h3>
+            {response ? (
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <p className="text-sm font-medium">{response.createdBy.fullName}</p>
+                  <p className="text-xs opacity-80">
+                    {new Date(response.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+                <p className="text-sm">{response.description}</p>
+              </div>
+            ) : (
+              <p className="text-sm">No response yet.</p>
+            )}
+          </div>
         </div>
-        <div className="flex justify-end space-x-4">
-          <Link href={"/admin-respond"}>
+
+        <div className="flex justify-end">
+          {status === "pending" && (
             <button
               onClick={handleRespond}
-              className="px-4 py-2 bg-Primary text-white rounded hover:bg-blue-800 transition-colors duration-300"
+              className="px-4 py-2 bg-primary-foreground text-neutral-200 hover:text-Primary hover:bg-neutral-200 font-semibold rounded text-sm transition-colors duration-300"
             >
               Respond
             </button>
-          </Link>
-          <button
-            onClick={handleDelete}
-            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors duration-300"
-          >
-            Delete Ticket
-          </button>
+          )}
         </div>
       </motion.div>
     </motion.div>
+  );
+};
+
+
+function SidebarItem({
+  icon,
+  label,
+  href,
+  isExpanded,
+  onClick
+}: {
+  icon: React.ReactNode;
+  label: string;
+  href: string;
+  isExpanded: boolean;
+  onClick?: () => void;
+}) {
+  return (
+    <Link
+      href={href}
+      className="flex items-center mb-1 hover:text-white cursor-pointer transition-colors duration-300 px-4 py-1" onClick={onClick}
+    >
+      <div className="w-8">{icon}</div>
+      <span
+        className={`ml-2 ${
+          isExpanded ? "opacity-100" : "opacity-0 w-0"
+        } transition-all duration-300`}
+      >
+        {label}
+      </span>
+    </Link>
   );
 }
 

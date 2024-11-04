@@ -442,6 +442,7 @@ console.log(managers);
           <SidebarItem
             icon={<LogOut size={20} />}
             label="Log out"
+            href="/"
             isExpanded={isExpanded}
             onClick={() => {
               document.cookie =
@@ -658,17 +659,24 @@ function SidebarItem({
 }: {
   icon: React.ReactNode;
   label: string;
-  href?: string;
+  href: string;
   isExpanded: boolean;
   onClick?: () => void;
 }) {
   return (
-    <div
-      className="flex items-center mb-4 text-gray-200 hover:bg-gray-600 rounded transition-colors duration-300 p-2" onClick={onClick}
+    <Link
+      href={href}
+      className="flex items-center mb-1 hover:text-white cursor-pointer transition-colors duration-300 px-4 py-1" onClick={onClick}
     >
-      {icon}
-      {isExpanded && <span className="ml-2">{label}</span>}
-    </div>
+      <div className="w-8">{icon}</div>
+      <span
+        className={`ml-2 ${
+          isExpanded ? "opacity-100" : "opacity-0 w-0"
+        } transition-all duration-300`}
+      >
+        {label}
+      </span>
+    </Link>
   );
 }
 
