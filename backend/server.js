@@ -17,8 +17,8 @@ mongoose
     console.log("Error!!! , Failed to connect", err.name);
   });
 
-const port = process.env.PORT || 5000;
-const server = app.listen(port, "127.0.0.1", () => {
+const port = process.env.PORT ;
+const server = app.listen(port, "/", () => {
   console.log("Greetings Sir port ${port} is up and running");
   console.log(process.env.NODE_ENV);
 });
