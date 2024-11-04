@@ -11,14 +11,14 @@ router
     departmentController.getDepartment
   )
   .patch(
-    authController.restrictTo("admin"),
+    authController.restrictTo("admin", "manager"),
     departmentController.updateDepartment
   )
   .delete(
-    authController.restrictTo("admin"),
+    authController.restrictTo("admin", "manager"),
     departmentController.deleteDepartment
   );
-router.use(authController.restrictTo("admin"));
+router.use(authController.restrictTo("admin", "manager"));
 router
   .route("/")
   .get(departmentController.getAllDepartments)

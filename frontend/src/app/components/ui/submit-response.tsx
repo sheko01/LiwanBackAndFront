@@ -136,7 +136,8 @@ const TicketResponsePage = () => {
       <div className="max-w-2xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <Link
-            href="/ticket-history"
+            onClick={() => router.back()}
+            href=""
             className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
           >
             <IconChevronLeft className="h-6 w-6" />

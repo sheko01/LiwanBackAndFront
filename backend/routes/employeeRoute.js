@@ -25,7 +25,7 @@ router.patch(
   authController.updatePassword
 );
 
-router.use(authController.protect, authController.restrictTo("admin"));
+router.use(authController.protect);
 
 router
   .route("/getEmployee")

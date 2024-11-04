@@ -11,6 +11,8 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 import { Input } from "./input";
+import { useRouter } from "next/navigation";
+
 
 const TicketForm = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -24,6 +26,7 @@ const TicketForm = () => {
   const [assignedTo, setAssignedTo] = useState(""); // Renamed to assignedTo
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const router = useRouter();
 
 
   const decodeTokenPayload = (token) => {
@@ -131,7 +134,8 @@ const TicketForm = () => {
       <div className="max-w-2xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <Link
-            href="/user-main"
+            href=""
+            onClick={() => router.back()}
             className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
           >
             <IconChevronLeft className="h-6 w-6" />
