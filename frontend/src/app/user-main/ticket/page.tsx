@@ -361,13 +361,9 @@ function TicketDetailsPopup({ ticket, onClose, onNavigateToRespond }) {
   const createdDate = new Date(createdAt).toLocaleDateString();
   const router = useRouter();
   const handleRespond = () => {
-    if (onNavigateToRespond) {
-      onNavigateToRespond(ticket._id);
-    } else {
-      router.push(`/admin-respond/`);
-    }
+    router.push(`/${ticket._id}`);
     onClose();
-  };
+  }
 
   return (
     <motion.div
