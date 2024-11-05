@@ -58,10 +58,10 @@ app.use(express.json({ limit: "16mb" })); //limits the size of the body to 16mb
 app.use(compression());
 
 
-app.options('http://localhost:3000', cors(corsOptions));  // handle all OPTIONS requests
-//app.options(process.env.NODE_ENV === 'production'
-//   ? process.env.PROD_FRONTEND_URL // Set this to your frontend URL on Vercel
- //   : 'http://localhost:3000', cors(corsOptions));  // handle all OPTIONS requests
+//app.options('http://localhost:3000', cors(corsOptions));  // handle all OPTIONS requests
+app.options(process.env.NODE_ENV === 'production'
+   ? process.env.PROD_FRONTEND_URL // Set this to your frontend URL on Vercel
+  : 'http://localhost:3000', cors(corsOptions));  // handle all OPTIONS requests
 
 //test middleware
 app.use((req, res, next) => {
