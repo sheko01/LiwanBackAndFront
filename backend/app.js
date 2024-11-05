@@ -58,7 +58,7 @@ app.use(express.json({ limit: "16mb" })); //limits the size of the body to 16mb
 app.use(compression());
 
 
-app.options('http://localhost:3000', cors(corsOptions));  // handle all OPTIONS requests
+app.options('https://liwan-back-and-front-main-74fc.vercel.app/', cors(corsOptions));  // handle all OPTIONS requests
 
 //test middleware
 app.use((req, res, next) => {
