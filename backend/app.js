@@ -23,13 +23,14 @@ app.enable("trust-proxy");
  // origin: 'http://localhost:3000',  // explicitly specify your frontend URL
  // credentials: true,                // allow credentials (cookies) in requests
 //};
-const corsOptions = {
-  origin: process.env.NODE_ENV === 'production'
-    ? process.env.PROD_FRONTEND_URL // Set this to your frontend URL on Vercel
-    : 'http://localhost:3000',
-  credentials: true,
-};
-app.use(cors(corsOptions));
+//const corsOptions = {
+//  origin: process.env.NODE_ENV === 'production'
+//    ? process.env.PROD_FRONTEND_URL // Set this to your frontend URL on Vercel
+//    : 'http://localhost:3000',
+//  credentials: true,
+//};
+//app.use(cors(corsOptions));
+app.use(cors());
 app.use(helmet());
 app.use(mongoSanitize());
 app.use(xss());
