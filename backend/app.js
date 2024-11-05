@@ -19,10 +19,10 @@ const globalErrorHandler = require("./controllers/errorController");
 const app = express();
 
 app.enable("trust-proxy");
-//const corsOptions = {
- // origin: 'http://localhost:3000',  // explicitly specify your frontend URL
- // credentials: true,                // allow credentials (cookies) in requests
-//};
+const corsOptions = {
+ origin: 'http://localhost:3000',  // explicitly specify your frontend URL
+ credentials: true,                // allow credentials (cookies) in requests
+};
 const corsOptions = {
  origin: process.env.NODE_ENV === 'production'
    ? process.env.PROD_FRONTEND_URL // Set this to your frontend URL on Vercel
@@ -30,12 +30,7 @@ const corsOptions = {
  credentials: true,
 };
 app.use(
-  cors({
-    origin: process.env.PROD_FRONTEND_URL, // allow requests from your frontend origin
-    methods: ['GET', 'POST', 'OPTIONS'], // include OPTIONS for preflight
-    allowedHeaders: ['Content-Type', 'Access-Control-Allow-Credentials', 'Access-Control-Allow-Origin'],
-    credentials: true, // if cookies/auth headers are needed
-  })
+  cors(corsOptions)
 );
 //app.use(cors());
 app.use(helmet());
@@ -65,9 +60,9 @@ app.use(express.json({ limit: "16mb" })); //limits the size of the body to 16mb
 app.use(compression());
 
 
-// app.options(process.env.NODE_ENV === 'production'
-//    ? process.env.PROD_FRONTEND_URL // Set this to your frontend URL on Vercel
-//     : 'http://localhost:3000',, cors(corsOptions));  // handle all OPTIONS requests
+app.options(process.env.NODE_ENV === 'production'
+   ? process.env.PROD_FRONTEND_URL // Set this to your frontend URL on Vercel
+    : 'http://localhost:3000',, cors(corsOptions));  // handle all OPTIONS requests
 
 //test middleware
 app.use((req, res, next) => {
