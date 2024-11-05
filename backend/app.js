@@ -23,16 +23,14 @@ const app = express();
 
 app.enable("trust-proxy");
 
-const corsOptions = {
- origin: process.env.NODE_ENV === 'production'
-   ? process.env.PROD_FRONTEND_URL // Set this to your frontend URL on Vercel
-    : 'http://localhost:3000',
- credentials: true,
-};
-app.use(
-  cors(corsOptions)
-);
-//app.use(cors());
+//const corsOptions = {
+// origin: process.env.NODE_ENV === 'production'
+//   ? process.env.PROD_FRONTEND_URL // Set this to your frontend URL on Vercel
+//    : 'http://localhost:3000',
+// credentials: true,
+//};
+//app.use(cors(corsOptions));
+app.use(cors());
 app.use(helmet());
 app.use(mongoSanitize());
 app.use(xss());
