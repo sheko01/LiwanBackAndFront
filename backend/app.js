@@ -18,6 +18,9 @@ const globalErrorHandler = require("./controllers/errorController");
 
 const app = express();
 
+// FUCK THIS SHIT
+
+
 app.enable("trust-proxy");
 
 const corsOptions = {
