@@ -19,9 +19,15 @@ const globalErrorHandler = require("./controllers/errorController");
 const app = express();
 
 app.enable("trust-proxy");
+//const corsOptions = {
+ // origin: 'http://localhost:3000',  // explicitly specify your frontend URL
+ // credentials: true,                // allow credentials (cookies) in requests
+//};
 const corsOptions = {
-  origin: 'http://localhost:3000',  // explicitly specify your frontend URL
-  credentials: true,                // allow credentials (cookies) in requests
+  origin: process.env.NODE_ENV === 'production'
+    ? process.env.PROD_FRONTEND_URL // Set this to your frontend URL on Vercel
+    : 'http://localhost:3000',
+  credentials: true,
 };
 app.use(cors(corsOptions));
 app.use(helmet());
