@@ -29,7 +29,14 @@ const corsOptions = {
     : 'http://localhost:3000',
  credentials: true,
 };
-app.use(cors(corsOptions));
+app.use(
+  cors({
+    origin: 'https://liwan-back-and-front-main.vercel.app', // allow requests from your frontend origin
+    methods: ['GET', 'POST', 'OPTIONS'], // include OPTIONS for preflight
+    allowedHeaders: ['Content-Type', 'Access-Control-Allow-Credentials', 'Access-Control-Allow-Origin'],
+    credentials: true, // if cookies/auth headers are needed
+  })
+);
 //app.use(cors());
 app.use(helmet());
 app.use(mongoSanitize());
