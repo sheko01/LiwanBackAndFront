@@ -20,7 +20,7 @@ const app = express();
 
 app.enable("trust-proxy");
 const corsOptions = {
-  origin: "http://localhost:3000", // explicitly specify your frontend URL
+  origin: process.env.PROD_FRONTEND_URL, // explicitly specify your frontend URL
   credentials: true, // allow credentials (cookies) in requests
 };
 app.use(cors(corsOptions));
