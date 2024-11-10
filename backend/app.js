@@ -27,7 +27,16 @@ app.use(cors(corsOptions));
 app.use(helmet());
 app.use(mongoSanitize());
 app.use(xss());
-app.use("/user_ticket", express.static(path.join(__dirname, "user_ticket")));
+//app.use("/user_ticket", express.static(path.join(__dirname, "user_ticket")));
+app.use(
+  "/user_ticket",
+  cors({
+    origin: process.env.PROD_FRONTEND_URL, // your frontend URL
+    credentials: true,
+  }),
+  express.static(path.join(__dirname, "user_ticket"))
+);
+
 app.use(cookieParser());
 
 // if (process.env.NODE_ENV === "development") {
