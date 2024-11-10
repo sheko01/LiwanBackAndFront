@@ -22,6 +22,6 @@ router
 router
   .route("/")
   .get(departmentController.getAllDepartments)
-  .post(authController.restrictTo("admin", "manager","employee"),departmentController.createDepartment);
+  .post(authController.restrictTo("admin", "manager"),departmentController.createDepartment);
 
 module.exports = router;
