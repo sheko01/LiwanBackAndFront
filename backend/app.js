@@ -20,11 +20,8 @@ const app = express();
 
 app.enable("trust-proxy");
 const corsOptions = {
-  origin: ['https://liwan-back-and-front-main-beta.vercel.app'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  origin: process.env.PROD_FRONTEND_URL,
   credentials: true,
-  maxAge: 600 // Caches preflight request for 10 minutes
 };
 
 app.use(cors(corsOptions));
@@ -54,15 +51,11 @@ app.use(express.json({ limit: "16mb" })); //limits the size of the body to 16mb
 
 app.use(compression());
 
-app.options('/api/v1/tickets', cors(corsOptions));
-app.options('/api/v1/departments', cors(corsOptions));
-app.options('/api/v1/employees', cors(corsOptions));
+app.options(process.env.PROD_FRONTEND_URL, cors(corsOptions));
 
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Credentials', 'true');
-  res.header('Access-Control-Allow-Origin', 'https://liwan-back-and-front-main-beta.vercel.app');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.header('Access-Control-Allow-Origin', process.env.PROD_FRONTEND_URL);
   next();
 });
 
