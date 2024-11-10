@@ -27,15 +27,7 @@ app.use(cors(corsOptions));
 app.use(helmet());
 app.use(mongoSanitize());
 app.use(xss());
-//app.use("/user_ticket", express.static(path.join(__dirname, "user_ticket")));
-app.use(
-  "/user_ticket",
-  cors({
-    origin: process.env.PROD_FRONTEND_URL, // your frontend URL
-    credentials: true,
-  }),
-  express.static(path.join(__dirname, "user_ticket"))
-);
+app.use("/user_ticket", express.static(path.join(__dirname, "user_ticket")));
 
 app.use(cookieParser());
 
@@ -58,7 +50,7 @@ app.use(express.json({ limit: "16mb" })); //limits the size of the body to 16mb
 
 app.use(compression());
 
-app.options("http://localhost:3000", cors(corsOptions)); // handle all OPTIONS requests
+app.options(process.env.PROD_FRONTEND_URL, cors(corsOptions)); // handle all OPTIONS requests
 
 //test middleware
 app.use((req, res, next) => {
