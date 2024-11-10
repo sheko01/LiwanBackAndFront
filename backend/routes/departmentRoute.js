@@ -18,10 +18,10 @@ router
     authController.restrictTo("admin", "manager"),
     departmentController.deleteDepartment
   );
-router.use(authController.restrictTo("admin", "manager","employee"));
+//router.use(authController.restrictTo("admin", "manager","employee"));
 router
   .route("/")
   .get(departmentController.getAllDepartments)
-  .post(departmentController.createDepartment);
+  .post(authController.restrictTo("admin", "manager","employee"),departmentController.createDepartment);
 
 module.exports = router;
