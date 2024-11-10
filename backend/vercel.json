@@ -20,11 +20,5 @@
         "Access-Control-Max-Age": "86400"
       }
     }
-  ],
-  "functions": {
-    "/": {
-      "memory": 1024,
-      "maxDuration": 60
-    }
-  }
+  ]
 }
