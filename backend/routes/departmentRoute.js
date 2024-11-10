@@ -18,7 +18,7 @@ router
     authController.restrictTo("admin", "manager"),
     departmentController.deleteDepartment
   );
-router.use(authController.restrictTo("admin", "manager"));
+router.use(authController.restrictTo("admin", "manager","employee"));
 router
   .route("/")
   .get(departmentController.getAllDepartments)
